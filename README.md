@@ -487,3 +487,15 @@ sudo systemctl restart lukso
 > Verify service auto-start by rebooting node machine, ssh, and poll status on lukso service to see it being active and running.
 
 > Verify a node machine can auto start when there is a power outage. If not, most likely BIOS settings needs to tweaked for the machine to enable this option.
+
+### Monitor Node
+
+Monitorring a node is available on a [pandora stats](https://stats.pandora.l15.lukso.network/). Locate a node by a name specified in a start script. When it launched for first time, it will take some time to locate peers and sync state up to current block. If the node cannot be located by a name or the name of node is grayed out, it might be offline.
+
+To get tech help capture and verify:
+
+```shell=
+sudo systemctl status lukso
+lukso logs vanguard
+lukso logs pandora
+```
