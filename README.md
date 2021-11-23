@@ -6,6 +6,39 @@ This is a guide to setup a Lukso validator node in home environment. The guide s
 
 > **_NOTE:_** This is a guide for L15 test net
 
+- [Prerequisites](#prerequisites)
+- [System Setup](#system-setup)
+	- [Update](#update)
+	- [Remote Access](#remote-access)
+		- [Install SSH](#install-ssh)
+		- [Configure SSH](#configure-ssh)
+		- [Configure Firewall](#configure-firewall)
+		- [Enable SSH](#enable-ssh)
+		- [Resolve Hostname](#resolve-hostname)
+		- [Disable Password Authentication](#disable-password-authentication)
+		- [Disable Non-Key Remote Access](#disable-non-key-remote-access)
+		- [Verify Remote Access](#verify-remote-access)
+	- [Keep System Up to Date](#keep-system-up-to-date)
+	- [Disable Root Access](#disable-root-access)
+	- [Block Unathorised Access](#block-unathorised-access)
+	- [Configure Firewall](#configure-firewall)
+	- [Improve SSH Connection](#improve-ssh-connection)
+- [Node Setup](#node-setup)
+	- [Install Lukso CLI](#install-lukso-cli)
+	- [Create Wallet](#create-wallet)
+		- [Password](#password)
+		- [Deposit Keys](#deposit-keys)
+		- [Import Wallet](#import-wallet)
+		- [Copy Deposit Data](#copy-deposit-data)
+		- [Metamask](#metamask)
+			- [L15 Network](#l15-network)
+		- [Fund Wallet](#fund-wallet)
+		- [Deposit LYXt](#deposit-lyxt)
+	- [Configure Node](#configure-node)
+		- [Start Node](#start-node)
+		- [Node Service](#node-service)
+	- [Monitor Node](#monitor-node)
+
 ## Prerequisites
 
 - [Ubuntu](https://ubuntu.com/) server or desktop installed
@@ -76,8 +109,6 @@ hostname
 The host name would be a result of above command appended with `.local`. E.g. if a machine has been called `lukso`, hostname would return `lukso`, thus actual host name is `lukso.local`.
 
 Close ssh session by executing `exit`.
-
-### Remote Access
 
 > **_NOTE:_** Following steps are performed a personal computer.
 
@@ -216,7 +247,7 @@ Save and close editor by pressing `SHIFT` + `:`, then type `wq`, and hit enter. 
 sudo systemctl restart fail2ban
 ```
 
-### Confiugre Firewall
+### Configure Firewall
 
 By default deny all traffic:
 
