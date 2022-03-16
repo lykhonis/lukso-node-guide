@@ -4,9 +4,8 @@ This is a guide to setup a Lukso validator node in home environment. The guide s
 
 > **_NOTE:_** Most of the steps require working in a terminal
 
-> **_NOTE:_** This is a guide for L15 test net
-
 - [Prerequisites](#prerequisites)
+	- [My Setup](#my-setup)
 - [System Setup](#system-setup)
 	- [Update](#update)
 	- [Remote Access](#remote-access)
@@ -24,25 +23,38 @@ This is a guide to setup a Lukso validator node in home environment. The guide s
 	- [Configure Firewall](#configure-firewall)
 	- [Improve SSH Connection](#improve-ssh-connection)
 - [Node Setup](#node-setup)
-	- [Install Lukso CLI](#install-lukso-cli)
-	- [Create Wallet](#create-wallet)
-		- [Password](#password)
-		- [Deposit Keys](#deposit-keys)
-		- [Import Wallet](#import-wallet)
-		- [Copy Deposit Data](#copy-deposit-data)
-		- [Metamask](#metamask)
-			- [L15 Network](#l15-network)
-		- [Fund Wallet](#fund-wallet)
-		- [Deposit LYXt](#deposit-lyxt)
-	- [Configure Node](#configure-node)
-		- [Start Node](#start-node)
-		- [Node Service](#node-service)
-	- [Monitor Node](#monitor-node)
+- [Monitoring](#monitoring)
+	- [Prometheus](#prometheus)
+		- [Configure](#configure)
+		- [Configure Service](#configure-service)
+	- [Grafana](#grafana)
+		- [Configure Service](#configure-service-1)
+		- [Configure Dashboard](#configure-dashboard)
+			- [Data Source](#data-source)
+			- [Install Dashboard](#install-dashboard)
+      - [Enable Alerts](#enable-alerts)
+	- [Node Exporter](#node-exporter)
+		- [Configure Service](#configure-service-2)
+	- [Json Exporter](#prometheus)
+		- [Configure](#configure-1)
+		- [Configure Service](#configure-service-3)
+	- [Ping](#ping)
+		- [Configure](#configure-2)
+		- [Configure Service](#configure-service-4)
+- [Credits](#credits)
 
 ## Prerequisites
 
-- [Ubuntu](https://ubuntu.com/) server or desktop installed
-- A personal computer with Unix like OS (Mac OS, Linux, etc.)
+- [Ubuntu](https://ubuntu.com/) LTS version
+- Dedicated PC
+
+### My Setup
+
+- [Intel NUC 10 Performance Kit – Intel Core i5](https://www.amazon.com/dp/B083GH1SSN/ref=cm_sw_r_cp_api_glt_i_PAVWC2JD4QTRSVHFFX10?_encoding=UTF8&psc=1)
+- [Memory Kit 16GB (8GBx2)](https://www.amazon.com/dp/B083VWCZLQ/ref=cm_sw_r_cp_api_glt_i_1YV0G8K4GAH0NYP6BN00?_encoding=UTF8&psc=1)
+- [Samsung 970 EVO Plus SSD 1TB](https://www.amazon.com/dp/B07MFZY2F2/ref=cm_sw_r_cp_api_glt_i_XF7ZS3XYJCQM5PH05P7V?_encoding=UTF8&psc=1)
+
+I've spent around $850. Current price seem to be less around $700. I connected my NUC with ethernet cable directly into my router.
 
 ## System Setup
 
@@ -55,7 +67,7 @@ In order to remotelly access a machine running a node, it needs to be configured
 ```shell=
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y vim
+sudo apt install -y vim wget make
 ```
 
 ### Remote Access
@@ -100,13 +112,18 @@ sudo systemctl enable ssh
 
 #### Resolve Hostname
 
-In order to locate a node machine in local network, it requires either IP address or a local host name. Execute following command to resolve a node machine's host name.
+In order to locate a node machine in local network, it requires IP. Execute following command to resolve a node machine's IP:
 
 ```shell=
-hostname
+ifconfig
 ```
 
-The host name would be a result of above command appended with `.local`. E.g. if a machine has been called `lukso`, hostname would return `lukso`, thus actual host name is `lukso.local`.
+Locate IP  address (`inet`) in `eno1` section, e.g. `192.168.86.29`.
+
+```
+eno1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+      inet 192.168.86.29  netmask 255.255.255.0  broadcast 192.168.86.255
+```
 
 Close ssh session by executing `exit`.
 
@@ -118,12 +135,12 @@ Verify basic access to a node machine by using ssh. SSH requires user name of a 
 vim ~/.ssh/config 
 ```
 
-Type in the following and replace *replace-user*, *replace-hostname*, and *replace-port*:
+Type in the following and replace *replace-user*, *replace-ip*, and *replace-port*:
 
 ```shell=
 Host lukso
   User replace-user
-  HostName replace-hostname.local
+  HostName replace-ip
   Port replace-port
 ```
 
@@ -256,12 +273,20 @@ sudo ufw default deny incoming
 sudo ufw default allow outgoing
 ```
 
-Allow P2P ports for Lukso client:
+Allow P2P ports for Lukso clients:
 
 ```shell=
+sudo ufw allow 30303/tcp
+sudo ufw allow 8545/tcp
+sudo ufw allow 8598/tcp
+sudo ufw allow 8080/tcp
+sudo ufw allow 3500/tcp
+sudo ufw allow 4000/tcp
 sudo ufw allow 13000/tcp
 sudo ufw allow 12000/udp
 ```
+
+> **_NOTE:_** make sure to open same ports on your home router
 
 Enable Firewall:
 
@@ -275,7 +300,7 @@ Verify firewall configuration:
 sudo ufw status numbered
 ```
 
-It should look something like this:
+It should look something like this (may be missing some ports):
 
 ```shell=
 Status: active
@@ -293,8 +318,6 @@ Status: active
 [ 9] 9090/tcp (v6)              ALLOW IN    Anywhere (v6)          
 [10] 3000/tcp (v6)              ALLOW IN    Anywhere (v6)
 ```
-
-> **_NOTE:_** 9090 and 3000 ports are for grafana configuration. This will be revisited later in the setup.
 
 ### Improve SSH Connection
 
@@ -326,207 +349,529 @@ Access a remote node machine
 ssh lukso
 ```
 
-### Install Lukso CLI
+## Monitoring
 
-```shell=
-curl https://install.l15.lukso.network | bash
-```
+Sets up a dashboard to monitor state of a node machine, node, and validators.
 
-### Create Wallet
+> **_NOTE:_** Following steps are performed on personal machine.
 
-Prepare a working folder
+Access a remote node machine
 
-```shell=
-mkdir -p ~/node/l15-prod/vanguard_wallet/
-```
-
-#### Password
-
-[Generate a password](https://passwordsgenerator.net/) containing numbers, letters, and special symbols (`%`, `!`, etc). Save password locally:
-
-```shell=
-echo 'insert-password-here' > ~/node/l15-prod/vanguard_wallet/password
-```
-
-#### Deposit Keys
-
-Generate new deposit keys (mnemonic)
-
-```shell=
-lukso-deposit-cli new-mnemonic
-```
-
-Follow step by step guide:
-1. Choose a language (default is English)
-2. Choose a number of validator to run. More validators can be added later
-3. Type `l15-prod` for network/chain name
-4. Type the password twice to confirm
-5. Take a note of mnemonic (24 words). **Do not save them locally, store it offline**. That being said, it is okay for L15 as this is a test network
-6. Hit enter and type all 24 words to confirm
-
-Import validator keys into a wallet:
-
-```shell=
-mv validator_keys ~/node/l15-prod/
-```
-
-#### Import Wallet
-
-Import validator keys to a wallet:
-
-```shell=
-lukso wallet --wallet-password-file ~/node/l15-prod/vanguard_wallet/password
-```
-
-Follow guide:
-1. Deposit keys: `~/node/l15-prod/validator_keys`
-2. Store wallet: `~/node/l15-prod/vanguard_wallet`
-3. Password: previously generated password
-
-#### Copy Deposit Data
-
-Exit ssh session to fetch deposit data. On a local machine fetch validator_keys folder containing deposit data json files. Replace *username* as needed:
-
-```shell=
-scp -r lukso:/home/username/node/l15-prod/validator_keys/ ./
-```
-
-In the work directory on a local machine, there should be `validator_keys` directory containing json files looking like `deposit_data-1636138343.json`.
-
-#### Metamask
-
-[Install Metamask](https://metamask.io/) to create a depositor wallet (address). Create a wallet following Metamask guide.
-
-##### L15 Network
-
-In Metamask go to `Settings` > `Networks` > `Add Network`. Configure it as following:
-- Network Name: `LUKSO L15`
-- New RPC URL: `https://rpc.l15.lukso.network`
-- Chain ID: `23`
-- Currency Symbol: `LYXt`
-- Block Explorer URL: `https://explorer.pandora.l15.lukso.network/`
-
-#### Fund Wallet
-
-Take a note of address in Metamask. Proceed to a [facuet](https://faucet.l15.lukso.network/) to fund this wallet with testnet LYXt.
-
-#### Deposit LYXt
-
-In order to run validators on Lukso network, a deposit(s) of LYX must be made. To do so proceed to [launchpad](https://launchpad.l15.lukso.network/) and fund it with Metamask wallet. In the guide, it will instruct to deposit data json files which can be located in `validator_keys` folder from earlier steps. Make sure to use same number of validator set when the deposit keys were generated.
-
-### Configure Node
-
-Ssh to a node machine:
 ```shell=
 ssh lukso
 ```
 
-#### Start Node
-
-Prepare scripts to start and stop a node with validators
+### Prometheus
 
 ```shell=
-sudo vim /usr/local/bin/lukso-start
+sudo adduser --system prometheus --group --no-create-home
 ```
 
-Following changes are needed:
-1. Coinbase: a wallet address from Metamask which deposited LYX
-2. Node name: a node name of a choice
-3. Replace *username*
+Identify latest version for `linux-amd64` [here](https://prometheus.io/download/), e.g. `2.34.0`. Install prometheus by replacing `{VERSION}` in the following:
 
 ```shell=
-#!/bin/bash
-
-lukso start \
-	--validate \
-	--coinbase "depositor-wallet-address" \
-	--node-name "l15-node" \
-	--wallet-dir /home/username/node/l15-prod/vanguard_wallet \
-	--wallet-password-file /home/username/node/l15-prod/vanguard_wallet/password \
-	--datadir /home/username/node/l15-prod/data \
-	--logsdir /home/username/node/l15-prod/logs
+cd
+wget https://github.com/prometheus/prometheus/releases/download/v{VERSION}/prometheus-{VERSION}.linux-amd64.tar.gz
+tar xzvf prometheus-{VERSION}.linux-amd64.tar.gz
+cd prometheus-{VERSION}.linux-amd64
+sudo cp promtool /usr/local/bin/
+sudo cp prometheus /usr/local/bin/
+sudo chown root:root /usr/local/bin/promtool /usr/local/bin/prometheus
+sudo chmod 755 /usr/local/bin/promtool /usr/local/bin/prometheus
+cd
+rm prometheus-{VERSION}.linux-amd64.tar.gz
+rm -rf prometheus-{VERSION}.linux-amd64
 ```
 
-Save and close editor by pressing `SHIFT` + `:`, then type `wq`, and hit enter. Prepare a stop script
+#### Configure
 
 ```shell=
-sudo vim /usr/local/bin/lukso-stop
+sudo mkdir -p /etc/prometheus/console_libraries /etc/prometheus/consoles /etc/prometheus/files_sd /etc/prometheus/rules /etc/prometheus/rules.d
 ```
 
-With content:
+Edit configuration file:
 
 ```shell=
-#!/bin/bash
-
-lukso stop
+sudo vim /etc/prometheus/prometheus.yml
 ```
 
-#### Node Service
+The content of configuration file:
 
-Create a system service to control a lukso client. This is useful to auto start a lukso client or restart if it crashes.
+```
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
 
-```shell=
-sudo vim /etc/systemd/system/lukso.service
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['127.0.0.1:9090']
+  - job_name: 'beacon node'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+  - job_name: 'node_exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['127.0.0.1:9100']
+  - job_name: 'validator'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['127.0.0.1:8081']
+  - job_name: 'ping_google'
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    static_configs:
+      - targets:
+        - 8.8.8.8
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:9115  # The blackbox exporter's real hostname:port.
+  - job_name: 'ping_cloudflare'
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    static_configs:
+      - targets:
+        - 1.1.1.1
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:9115  # The blackbox exporter's real hostname:port.
+  - job_name: json_exporter
+    static_configs:
+    - targets:
+      - 127.0.0.1:7979
+  - job_name: json
+    metrics_path: /probe
+    static_configs:
+    - targets:
+      - https://api.coingecko.com/api/v3/simple/price?ids=lukso-token&vs_currencies=usd
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: 127.0.0.1:7979
 ```
 
-Provide description and replace *username* with correct name.
-
-> To find a group of a *username* execute: `groups username`
+Prepare data directory for prometheus:
 
 ```shell=
+sudo chown -R prometheus:prometheus /etc/prometheus
+sudo mkdir /var/lib/prometheus
+sudo chown prometheus:prometheus /var/lib/prometheus
+sudo chmod 755 /var/lib/prometheus
+```
+
+Open port to access to metrics. This is optional, only for external use:
+
+```shell=
+sudo ufw allow 9090/tcp
+```
+
+#### Configure Service
+
+```shell=
+sudo vim /etc/systemd/system/prometheus.service
+```
+
+The content of service configuration file:
+
+```
 [Unit]
-Description=Lukso node and validators
-After=network.target network-online.target
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
 
 [Service]
-User=username
-Group=group
-Type=forking
-ExecStart=/usr/local/bin/lukso-start
-ExecStop=/usr/local/bin/lukso-stop
-TimeoutSec=30
-Restart=on-failure
-RestartSec=30
-StartLimitInterval=350
-StartLimitBurst=10
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/usr/local/bin/prometheus \
+	--config.file /etc/prometheus/prometheus.yml \
+	--storage.tsdb.path /var/lib/prometheus/ \
+	--storage.tsdb.retention.time=31d \
+	--web.console.templates=/etc/prometheus/consoles \
+	--web.console.libraries=/etc/prometheus/console_libraries
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Enable node service
+Enable service:
 
 ```shell=
 sudo systemctl daemon-reload
-sudo systemctl start lukso
+sudo systemctl start prometheus.service
+sudo systemctl enable prometheus.service
 ```
 
-Verify service status:
-```shell=
-sudo systemctl status lukso
-```
+### Grafana
 
-It should print green indicator to signal active status and contain following message: `Active: active (running)`.
-
-Enable and restart or stop service as needed:
-```shell=
-sudo systemctl stop lukso
-sudo systemctl enable lukso
-sudo systemctl restart lukso
-```
-
-> Verify service auto-start by rebooting node machine, ssh, and poll status on lukso service to see it being active and running.
-
-> Verify a node machine can auto start when there is a power outage. If not, most likely BIOS settings needs to tweaked for the machine to enable this option.
-
-### Monitor Node
-
-Monitorring a node is available on a [pandora stats](https://stats.pandora.l15.lukso.network/). Locate a node by a name specified in a start script. When it launched for first time, it will take some time to locate peers and sync state up to current block. If the node cannot be located by a name or the name of node is grayed out, it might be offline.
-
-To get tech help capture and verify:
+Install:
 
 ```shell=
-sudo systemctl status lukso
-lukso logs vanguard
-lukso logs pandora
+cd
+sudo apt-get install -y apt-transport-https
+sudo apt-get install -y software-properties-common wget
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+sudo apt-get update
+sudo apt-get install grafana-enterprise
 ```
+
+#### Configure Service
+
+```shell=
+sudo vim /lib/systemd/system/grafana-server.service
+```
+
+The content of service configuration file:
+
+```
+[Unit]
+Description=Grafana instance
+Documentation=http://docs.grafana.org
+Wants=network-online.target
+After=network-online.target
+After=postgresql.service mariadb.service mysql.service
+
+[Service]
+EnvironmentFile=/etc/default/grafana-server
+User=grafana
+Group=grafana
+Type=simple
+Restart=on-failure
+WorkingDirectory=/usr/share/grafana
+RuntimeDirectory=grafana
+RuntimeDirectoryMode=0750
+ExecStart=/usr/sbin/grafana-server \
+                            --config=${CONF_FILE} \
+                            --pidfile=${PID_FILE_DIR}/grafana-server.pid \
+                            --packaging=deb \
+                            cfg:default.paths.logs=${LOG_DIR} \
+                            cfg:default.paths.data=${DATA_DIR} \
+                            cfg:default.paths.plugins=${PLUGINS_DIR} \
+                            cfg:default.paths.provisioning=${PROVISIONING_CFG_DIR}
+
+
+LimitNOFILE=10000
+TimeoutStopSec=20
+CapabilityBoundingSet=
+DeviceAllow=
+LockPersonality=true
+MemoryDenyWriteExecute=false
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+PrivateUsers=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=full
+RemoveIPC=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+UMask=0027
+
+[Install]
+Alias=grafana.service
+WantedBy=multi-user.target
+```
+
+Enable service:
+
+```shell=
+sudo systemctl daemon-reload
+sudo systemctl start grafana-server
+sudo systemctl enable grafana-server
+```
+
+Open port to access to metrics. This is optional, only for external use:
+
+```shell=
+sudo ufw allow 3000/tcp
+```
+
+#### Configure Dashboard
+
+Login to grafana by navigating to webrowser `http://192.168.86.29:3000`. Replace `192.168.86.29` with IP of your node machine. This is same IP used to ssh.
+
+Default credentials are username and password `admin`. Set a new secure (long) password when prompted by grafana.
+
+##### Data Source
+
+1. On the left-hand menu, hover over the gear menu and click on `Data Sources`
+2. Then click on the Add Data Source button
+3. Hover over the Prometheus card on screen, then click on the Select button
+4. Enter http://127.0.0.1:9090/ into the URL field, then click Save & Test
+
+##### Install Dashboard
+
+1. Hover over the plus symbol icon in the left-hand menu, then click on Import
+2. Copy and paste [the dashboard](/grafana/dashboard.json) into the `Import via panel json` text box on the screen
+3. Then click the Load button
+4. Then click the Import button
+
+##### Enable Alerts
+
+1. On the left-hand maenu, hover over the alarm menue and click on `Notification channels`
+2. Click on `New channel`
+3. Select `Type` and [configure](https://grafana.com/docs/grafana/latest/alerting/old-alerting/notifications/)
+
+On lukso dashboard:
+
+1. Scroll down on a dashboard to `Alerts` section
+2. Select each alert and click `Edit`
+3. In `Alert` tab, select notifications `send to`
+4. Save and repeat for each alert
+
+### Node Exporter
+
+Monitors node stats:
+
+```shell=
+sudo adduser --system node_exporter --group --no-create-home
+```
+
+Install:
+
+```shell=
+cd
+wget https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
+tar xzvf node_exporter-1.0.1.linux-amd64.tar.gz
+sudo cp node_exporter-1.0.1.linux-amd64/node_exporter /usr/local/bin/
+sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+rm node_exporter-1.0.1.linux-amd64.tar.gz
+rm -rf node_exporter-1.0.1.linux-amd64
+```
+
+#### Configure Service
+
+```shell=
+sudo vim /etc/systemd/system/node_exporter.service
+```
+
+The content of service configuration file:
+
+```
+[Unit]
+Description=Node Exporter
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable service:
+
+```shell=
+sudo systemctl daemon-reload
+sudo systemctl start node_exporter.service
+sudo systemctl enable node_exporter.service
+```
+
+### Json Exporter
+
+Install `go`:
+
+```shell=
+sudo apt-get install golang-1.14-go
+sudo ln -s /usr/lib/go-1.14/bin/go /usr/bin/go
+````
+
+User:
+
+```shell=
+sudo adduser --system json_exporter --group --no-create-home
+```
+
+Install:
+
+```shell=
+cd
+git clone https://github.com/prometheus-community/json_exporter.git
+cd json_exporter
+make build
+sudo cp json_exporter /usr/local/bin/
+sudo chown json_exporter:json_exporter /usr/local/bin/json_exporter
+cd
+rm -rf json_exporter
+```
+
+#### Configure
+
+```shell=
+sudo mkdir /etc/json_exporter
+sudo chown json_exporter:json_exporter /etc/json_exporter
+```
+
+Setup `LYX` token price:
+
+```shell=
+sudo vim /etc/json_exporter/json_exporter.yml
+```
+
+The content of configuration file:
+
+```
+metrics:
+- name: lyxusd
+  path: "{.lukso-token.usd}"
+  help: Lukso (LYX) price in USD
+```
+
+Change ownership of configuration file:
+
+```shell=
+sudo chown json_exporter:json_exporter /etc/json_exporter/json_exporter.yml
+```
+
+#### Configure Service
+
+```shell=
+sudo vim /etc/systemd/system/json_exporter.service
+```
+
+The content of service configuration file:
+
+```
+[Unit]
+Description=JSON Exporter
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=json_exporter
+ExecStart=/usr/local/bin/json_exporter --config.file /etc/json_exporter/json_exporter.yml
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable service:
+
+```shell=
+sudo systemctl daemon-reload
+sudo systemctl start json_exporter.service
+sudo systemctl enable json_exporter.service
+```
+
+### Ping
+
+Pings google and cloudflare to track latency. This is optional.
+
+```shell=
+sudo adduser --system blackbox_exporter --group --no-create-home
+```
+
+Install:
+
+```shell=
+cd
+wget https://github.com/prometheus/blackbox_exporter/releases/download/v0.18.0/blackbox_exporter-0.18.0.linux-amd64.tar.gz
+tar xvzf blackbox_exporter-0.18.0.linux-amd64.tar.gz
+sudo cp blackbox_exporter-0.18.0.linux-amd64/blackbox_exporter /usr/local/bin/
+sudo chown blackbox_exporter:blackbox_exporter /usr/local/bin/blackbox_exporter
+sudo chmod 755 /usr/local/bin/blackbox_exporter
+rm blackbox_exporter-0.18.0.linux-amd64.tar.gz
+rm -rf blackbox_exporter-0.18.0.linux-amd64
+```
+
+Enable ping permissions:
+
+```shell=
+sudo setcap cap_net_raw+ep /usr/local/bin/blackbox_exporter
+```
+
+#### Configure
+
+```shell=
+sudo mkdir /etc/blackbox_exporter
+sudo chown blackbox_exporter:blackbox_exporter /etc/blackbox_exporter
+```
+
+```shell=
+sudo vim /etc/blackbox_exporter/blackbox.yml
+```
+
+The content of configuration file:
+
+```
+modules:
+        icmp:
+                prober: icmp
+                timeout: 10s
+                icmp:
+                        preferred_ip_protocol: ipv4
+```
+
+Change ownership of configuration file:
+
+```shell=
+sudo chown blackbox_exporter:blackbox_exporter /etc/blackbox_exporter/blackbox.yml
+```
+
+#### Configure Service
+
+```shell=
+sudo vim /etc/systemd/system/blackbox_exporter.service
+```
+
+The content of service configuration file:
+
+```
+[Unit]
+Description=Blackbox Exporter
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=blackbox_exporter
+ExecStart=/usr/local/bin/blackbox_exporter --config.file /etc/blackbox_exporter/blackbox.yml
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable service:
+
+```shell=
+sudo systemctl daemon-reload
+sudo systemctl start blackbox_exporter.service
+sudo systemctl enable blackbox_exporter.service
+```
+
+## Credits
+
+- https://github.com/metanull-operator/eth2-ubuntu
