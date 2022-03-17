@@ -349,6 +349,9 @@ Access a remote node machine
 ssh lukso
 ```
 
+**TBD AS LUKSO IS PREPEARING FOR L16 TESTNET**.
+In the meantime follow developments and instructions of [L16 beta](https://docs.lukso.tech/networks/l16-testnet).
+
 ## Monitoring
 
 Sets up a dashboard to monitor state of a node machine, node, and validators.
