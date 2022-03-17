@@ -45,11 +45,12 @@ This is a guide to setup a Lukso validator node in home environment. The guide s
 
 ## Prerequisites
 
-- [Ubuntu](https://ubuntu.com/) LTS version
+- [Ubuntu](https://ubuntu.com/)
 - Dedicated PC
 
 ### My Setup
 
+- Ubuntu 20.04.4 LTS
 - [Intel NUC 10 Performance Kit – Intel Core i5](https://www.amazon.com/dp/B083GH1SSN/ref=cm_sw_r_cp_api_glt_i_PAVWC2JD4QTRSVHFFX10?_encoding=UTF8&psc=1)
 - [Memory Kit 16GB (8GBx2)](https://www.amazon.com/dp/B083VWCZLQ/ref=cm_sw_r_cp_api_glt_i_1YV0G8K4GAH0NYP6BN00?_encoding=UTF8&psc=1)
 - [Samsung 970 EVO Plus SSD 1TB](https://www.amazon.com/dp/B07MFZY2F2/ref=cm_sw_r_cp_api_glt_i_XF7ZS3XYJCQM5PH05P7V?_encoding=UTF8&psc=1)
