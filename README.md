@@ -5,42 +5,44 @@ This is a guide to setup a Lukso validator node in home environment. The guide s
 > **_NOTE:_** Most of the steps require working in a terminal
 
 - [Prerequisites](#prerequisites)
-	- [My Setup](#my-setup)
+  - [My Setup](#my-setup)
 - [System Setup](#system-setup)
-	- [Update](#update)
-	- [Remote Access](#remote-access)
-		- [Install SSH](#install-ssh)
-		- [Configure SSH](#configure-ssh)
-		- [Configure Firewall](#configure-firewall)
-		- [Enable SSH](#enable-ssh)
-		- [Resolve Hostname](#resolve-hostname)
-		- [Disable Password Authentication](#disable-password-authentication)
-		- [Disable Non-Key Remote Access](#disable-non-key-remote-access)
-		- [Verify Remote Access](#verify-remote-access)
-	- [Keep System Up to Date](#keep-system-up-to-date)
-	- [Disable Root Access](#disable-root-access)
-	- [Block Unathorised Access](#block-unathorised-access)
-	- [Configure Firewall](#configure-firewall)
-	- [Improve SSH Connection](#improve-ssh-connection)
+  - [Update](#update)
+  - [Remote Access](#remote-access)
+    - [Install SSH](#install-ssh)
+    - [Configure SSH](#configure-ssh)
+    - [Configure Firewall](#configure-firewall)
+    - [Enable SSH](#enable-ssh)
+    - [Resolve Hostname](#resolve-hostname)
+    - [Disable Password Authentication](#disable-password-authentication)
+    - [Disable Non-Key Remote Access](#disable-non-key-remote-access)
+    - [Verify Remote Access](#verify-remote-access)
+  - [Keep System Up to Date](#keep-system-up-to-date)
+  - [Disable Root Access](#disable-root-access)
+  - [Block Unathorised Access](#block-unathorised-access)
+  - [Configure Firewall](#configure-firewall)
+  - [Improve SSH Connection](#improve-ssh-connection)
 - [Node Setup](#node-setup)
 - [Monitoring](#monitoring)
-	- [Prometheus](#prometheus)
-		- [Configure](#configure)
-		- [Configure Service](#configure-service)
-	- [Grafana](#grafana)
-		- [Configure Service](#configure-service-1)
-		- [Configure Dashboard](#configure-dashboard)
-			- [Data Source](#data-source)
-			- [Install Dashboard](#install-dashboard)
+  - [Prometheus](#prometheus)
+    - [Configure](#configure)
+    - [Configure Service](#configure-service)
+  - [Grafana](#grafana)
+    - [Configure Service](#configure-service-1)
+    - [Configure Dashboard](#configure-dashboard)
+      - [Data Source](#data-source)
+      - [Install Dashboard](#install-dashboard)
       - [Enable Alerts](#enable-alerts)
-	- [Node Exporter](#node-exporter)
-		- [Configure Service](#configure-service-2)
-	- [Json Exporter](#prometheus)
-		- [Configure](#configure-1)
-		- [Configure Service](#configure-service-3)
-	- [Ping](#ping)
-		- [Configure](#configure-2)
-		- [Configure Service](#configure-service-4)
+  - [Node Exporter](#node-exporter)
+    - [Configure Service](#configure-service-2)
+  - [Json Exporter](#json-exporter)
+    - [Prerequisites](#prerequisites-1)
+    - [Build and Install](#build-and-install)
+    - [Configure](#configure-1)
+    - [Configure Service](#configure-service-3)
+  - [Ping](#ping)
+    - [Configure](#configure-2)
+    - [Configure Service](#configure-service-4)
 - [Credits](#credits)
 
 ## Prerequisites
@@ -705,12 +707,26 @@ sudo systemctl enable node_exporter.service
 
 ### Json Exporter
 
-Install `go`:
+#### Prerequisites 
+
+Check `go` version if installed:
 
 ```shell=
-sudo apt-get install golang-1.14-go
-sudo ln -s /usr/lib/go-1.14/bin/go /usr/bin/go
-````
+go version
+```
+
+If it is less than `1.17.7` please install following:
+
+```shell=
+wget https://dl.google.com/go/go1.17.7.linux-amd64.tar.gz
+sudo tar -xvf go1.17.7.linux-amd64.tar.gz
+rm go1.17.7.linux-amd64.tar.gz
+sudo mv go /usr/local/go-1.17.7
+sudo ln -sf /usr/local/go-1.17.7/bin/go /usr/bin/go
+go version
+```
+
+#### Build and Install
 
 User:
 
