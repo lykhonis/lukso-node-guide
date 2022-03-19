@@ -6,6 +6,7 @@ This is a guide to setup a Lukso validator node in home environment. The guide s
 
 - [Prerequisites](#prerequisites)
   - [My Setup](#my-setup)
+    - [Auto Start](#auto-start)
 - [System Setup](#system-setup)
   - [Update](#update)
   - [Remote Access](#remote-access)
@@ -58,6 +59,16 @@ This is a guide to setup a Lukso validator node in home environment. The guide s
 - [Samsung 970 EVO Plus SSD 1TB](https://www.amazon.com/dp/B07MFZY2F2/ref=cm_sw_r_cp_api_glt_i_XF7ZS3XYJCQM5PH05P7V?_encoding=UTF8&psc=1)
 
 I've spent around $850. Current price seem to be less around $700. I connected my NUC with ethernet cable directly into my router.
+
+#### Auto Start
+
+I had to manually change BIOS settings of NUC to ensure if power gets reset, NUC auto starts. A simple test is unplug and plug power cord back in.
+
+For NUC I followed following steps:
+1. Press F2 during boot to enter BIOS setup
+2. Go to `Power` -> `Secondary Power Settings` menu
+3. Set the option for `After Power Failure` to `Power One`
+4. Press F10 to save changes and exit BIOS
 
 ## System Setup
 
