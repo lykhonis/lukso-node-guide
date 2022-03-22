@@ -81,7 +81,7 @@ In order to remotelly access a machine running a node, it needs to be configured
 ```shell=
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y vim wget make
+sudo apt install -y vim wget make git
 ```
 
 ### Remote Access
