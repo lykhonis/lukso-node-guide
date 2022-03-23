@@ -533,8 +533,8 @@ Enable service:
 
 ```shell=
 sudo systemctl daemon-reload
-sudo systemctl start prometheus.service
-sudo systemctl enable prometheus.service
+sudo systemctl start prometheus
+sudo systemctl enable prometheus
 ```
 
 ### Grafana
@@ -712,8 +712,8 @@ Enable service:
 
 ```shell=
 sudo systemctl daemon-reload
-sudo systemctl start node_exporter.service
-sudo systemctl enable node_exporter.service
+sudo systemctl start node_exporter
+sudo systemctl enable node_exporter
 ```
 
 ### Json Exporter
@@ -813,8 +813,8 @@ Enable service:
 
 ```shell=
 sudo systemctl daemon-reload
-sudo systemctl start json_exporter.service
-sudo systemctl enable json_exporter.service
+sudo systemctl start json_exporter
+sudo systemctl enable json_exporter
 ```
 
 ### Ping
@@ -899,8 +899,8 @@ Enable service:
 
 ```shell=
 sudo systemctl daemon-reload
-sudo systemctl start blackbox_exporter.service
-sudo systemctl enable blackbox_exporter.service
+sudo systemctl start blackbox_exporter
+sudo systemctl enable blackbox_exporter
 ```
 
 ## Credits
