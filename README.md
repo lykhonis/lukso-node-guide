@@ -298,6 +298,7 @@ sudo ufw allow 3500/tcp
 sudo ufw allow 4000/tcp
 sudo ufw allow 13000/tcp
 sudo ufw allow 12000/udp
+sudo ufw allow 30303/udp
 ```
 
 > **_NOTE:_** make sure to open same ports on your home router
@@ -654,7 +655,7 @@ Default credentials are username and password `admin`. Set a new secure (long) p
 
 ##### Enable Alerts
 
-1. On the left-hand maenu, hover over the alarm menue and click on `Notification channels`
+1. On the left-hand menu, hover over the alarm menue and click on `Notification channels`
 2. Click on `New channel`
 3. Select `Type` and [configure](https://grafana.com/docs/grafana/latest/alerting/old-alerting/notifications/)
 
