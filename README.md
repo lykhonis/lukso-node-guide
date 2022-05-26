@@ -291,11 +291,6 @@ Allow P2P ports for Lukso clients:
 
 ```shell=
 sudo ufw allow 30303/tcp
-sudo ufw allow 8545/tcp
-sudo ufw allow 8598/tcp
-sudo ufw allow 8080/tcp
-sudo ufw allow 3500/tcp
-sudo ufw allow 4000/tcp
 sudo ufw allow 13000/tcp
 sudo ufw allow 12000/udp
 sudo ufw allow 30303/udp
@@ -312,7 +307,7 @@ sudo ufw enable
 Verify firewall configuration:
 
 ```shell=
-sudo ufw status numbered
+sudo ufw status
 ```
 
 It should look something like this (may be missing some ports):
@@ -320,18 +315,18 @@ It should look something like this (may be missing some ports):
 ```shell=
 Status: active
 
-     To                         Action      From
-     --                         ------      ----
-[ 1] 13000/tcp                  ALLOW IN    Anywhere               
-[ 2] ssh-port/tcp               ALLOW IN    Anywhere               
-[ 3] 12000/udp                  ALLOW IN    Anywhere               
-[ 4] 9090/tcp                   ALLOW IN    Anywhere              
-[ 5] 3000/tcp                   ALLOW IN    Anywhere               
-[ 6] 13000/tcp (v6)             ALLOW IN    Anywhere (v6)          
-[ 7] ssh-port/tcp (v6)          ALLOW IN    Anywhere (v6)          
-[ 8] 12000/udp (v6)             ALLOW IN    Anywhere (v6)          
-[ 9] 9090/tcp (v6)              ALLOW IN    Anywhere (v6)          
-[10] 3000/tcp (v6)              ALLOW IN    Anywhere (v6)
+To                         Action      From
+--                         ------      ----
+13000/tcp                  ALLOW       Anywhere
+12000/udp                  ALLOW       Anywhere
+30303/tcp                  ALLOW       Anywhere
+ssh-port/tcp               ALLOW       Anywhere
+30303/udp                  ALLOW       Anywhere
+13000/tcp (v6)             ALLOW       Anywhere (v6)
+12000/udp (v6)             ALLOW       Anywhere (v6)
+30303/tcp (v6)             ALLOW       Anywhere (v6)
+ssh-port/tcp (v6)          ALLOW       Anywhere (v6)
+30303/udp (v6)             ALLOW       Anywhere (v6)
 ```
 
 ### Improve SSH Connection
