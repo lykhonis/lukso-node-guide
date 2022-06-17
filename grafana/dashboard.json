@@ -330,7 +330,8 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "sum(validator_balance{job=\"validator\"})-(count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*32)",
+          "exemplar": true,
+          "expr": "sum(validator_balance{job=\"validator\"})-(count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*220)",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -412,7 +413,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "(sum(validator_balance{job=\"validator\"}) - (count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*32))/(count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*32)  ",
+          "expr": "(sum(validator_balance{job=\"validator\"}) - (count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*220))/(count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*220)  ",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -509,7 +510,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "light-red",
                 "value": null
               },
               {
@@ -580,7 +581,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "light-red",
                 "value": null
               },
               {
@@ -843,8 +844,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "light-red",
                 "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.0001
               }
             ]
           },
@@ -885,7 +894,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "sum(validator_balance{job=\"validator\"})-(count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*32)",
+          "expr": "sum(validator_balance{job=\"validator\"})-(count(validator_balance{job=\"validator\"} > 16 and validator_statuses{job=\"validator\"} == 3)*220)",
           "instant": true,
           "interval": "",
           "legendFormat": "total_balance",
@@ -998,7 +1007,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Lyx Price (USD)",
+      "title": "LYX Price (USD)",
       "transformations": [
         {
           "id": "calculateField",
@@ -1465,7 +1474,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1h != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) + (32 * count(validator_balance{job=\"validator\"} offset 1h > 16))",
+          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1h != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) + (220 * count(validator_balance{job=\"validator\"} offset 1h > 16))",
           "instant": false,
           "interval": "",
           "intervalFactor": 3,
@@ -1503,7 +1512,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "light-red",
                 "value": null
               },
               {
@@ -1548,7 +1557,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1d != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) + (32 * count(validator_balance{job=\"validator\"} offset 1d > 16))",
+          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1d != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) + (220 * count(validator_balance{job=\"validator\"} offset 1d > 16))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -1630,7 +1639,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 7d != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) + (32 * count(validator_balance{job=\"validator\"} offset 7d > 16))",
+          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 7d != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) + (220 * count(validator_balance{job=\"validator\"} offset 7d > 16))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -1712,7 +1721,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 30d != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) + (32 * count(validator_balance{job=\"validator\"} offset 30d > 16))",
+          "expr": "sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 30d != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) + (220 * count(validator_balance{job=\"validator\"} offset 30d > 16))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -2063,7 +2072,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1h != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) +\t(32 * count(validator_balance{job=\"validator\"} offset 1h > 16)))/(32 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[1h:]))) * 365 * 24",
+          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1h != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) +\t(220 * count(validator_balance{job=\"validator\"} offset 1h > 16)))/(220 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[1h:]))) * 365 * 24",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized hourly return",
@@ -2145,7 +2154,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1d != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) +\t(32 * count(validator_balance{job=\"validator\"} offset 1d > 16)))/(32 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[1d:]))) * 365",
+          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 1d != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) +\t(220 * count(validator_balance{job=\"validator\"} offset 1d > 16)))/(220 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[1d:]))) * 365",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized daily return",
@@ -2227,7 +2236,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 7d != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) +\t(32 * count(validator_balance{job=\"validator\"} offset 7d > 16)))/(32 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[7d:]))) * (365/7)",
+          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 7d != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) +\t(220 * count(validator_balance{job=\"validator\"} offset 7d > 16)))/(220 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[7d:]))) * (365/7)",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized weekly return",
@@ -2309,7 +2318,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 30d != 0) - (32 * count(validator_balance{job=\"validator\"} > 16)) +\t(32 * count(validator_balance{job=\"validator\"} offset 30d > 16)))/(32 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[30d:]))) * (365/30)",
+          "expr": "((sum(validator_balance{job=\"validator\"}) - sum(validator_balance{job=\"validator\"} offset 30d != 0) - (220 * count(validator_balance{job=\"validator\"} > 16)) +\t(220 * count(validator_balance{job=\"validator\"} offset 30d > 16)))/(220 * avg_over_time(count(validator_balance{job=\"validator\"} > 16)[30d:]))) * (365/30)",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized monthly return",
@@ -2668,8 +2677,8 @@
           "mappingType": 1,
           "pattern": "Value #F",
           "thresholds": [
-            "24",
-            "32"
+            "165",
+            "220"
           ],
           "type": "number",
           "unit": "short"
@@ -2687,8 +2696,8 @@
           "decimals": 2,
           "link": true,
           "linkTargetBlank": true,
-          "linkTooltip": "beaconcha.in",
-          "linkUrl": "http://beaconcha.in/validator/${__cell_1:raw}",
+          "linkTooltip": "explorer",
+          "linkUrl": "https://explorer.consensus.l16.lukso.network/validator/${__cell_1:raw}",
           "mappingType": 1,
           "pattern": "pubkey_short",
           "thresholds": [],
@@ -3991,6 +4000,7 @@
           "refId": "B"
         },
         {
+          "exemplar": true,
           "expr": "node_memory_Cached_bytes{job=\"node_exporter\"} or node_memory_Cached{job=\"node_exporter\"}",
           "interval": "",
           "intervalFactor": 1,
@@ -4401,7 +4411,7 @@
         "for": "5m",
         "frequency": "1m",
         "handler": 1,
-        "message": "Node or validator process is down for more than 1 minute",
+        "message": "Node or validator process is down for more than 5 minutes",
         "name": "Process down",
         "noDataState": "no_data",
         "notifications": [
@@ -4531,7 +4541,7 @@
           {
             "evaluator": {
               "params": [
-                5368709120
+                2147483648
               ],
               "type": "lt"
             },
@@ -4556,7 +4566,7 @@
         "for": "30m",
         "frequency": "1m",
         "handler": 1,
-        "name": "Free memory > 5GB",
+        "name": "Free memory < 2GB",
         "noDataState": "no_data",
         "notifications": [
           {
@@ -4613,7 +4623,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "node_memory_MemFree_bytes{job=\"node_exporter\"} or node_memory_MemFree{job=\"node_exporter\"}",
+          "expr": "(node_memory_MemFree_bytes{job=\"node_exporter\"} or node_memory_MemFree{job=\"node_exporter\"}) + (node_memory_Cached_bytes{job=\"node_exporter\"} or node_memory_Cached{job=\"node_exporter\"})",
           "hide": false,
           "interval": "",
           "intervalFactor": 1,
@@ -4627,14 +4637,14 @@
           "fill": true,
           "line": true,
           "op": "lt",
-          "value": 5368709120,
+          "value": 2147483648,
           "visible": true
         }
       ],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Free memory > 5GB",
+      "title": "Free memory < 2GB",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -5006,7 +5016,7 @@
           {
             "evaluator": {
               "params": [
-                30
+                40
               ],
               "type": "lt"
             },
@@ -5031,7 +5041,7 @@
         "for": "5m",
         "frequency": "1m",
         "handler": 1,
-        "name": "below 30 peers alert",
+        "name": "below 40 peers alert",
         "noDataState": "no_data",
         "notifications": [
           {
@@ -5099,14 +5109,14 @@
           "fill": true,
           "line": true,
           "op": "lt",
-          "value": 30,
+          "value": 40,
           "visible": true
         }
       ],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "below 30 peers",
+      "title": "below 40 peers",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -5998,7 +6008,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(validator_balance) - sum(validator_balance offset 1h) - count(validator_balance > 16)*32 + count(validator_balance offset 1h > 0)*32",
+          "expr": "sum(validator_balance) - sum(validator_balance offset 1h) - count(validator_balance > 16)*220 + count(validator_balance offset 1h > 0)*220",
           "hide": false,
           "interval": "",
           "intervalFactor": 1,
@@ -6067,7 +6077,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -6086,5 +6096,5 @@
   "timezone": "",
   "title": "Lukso",
   "uid": "92og3IP7z",
-  "version": 97
+  "version": 124
 }
